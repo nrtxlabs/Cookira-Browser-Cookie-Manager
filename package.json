@@ -1,0 +1,40 @@
+{
+  "name": "cookira-browser-cookie-manager",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Cookira — Local-first Dual-Target (Chromium MV3 & Firefox WebExtension) Browser Cookie Manager by NRTX Labs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "cross-env NODE_ENV=production node scripts/build-extension.mjs",
+    "build:chrome": "cross-env NODE_ENV=production node scripts/build-extension.mjs --target=chrome",
+    "build:firefox": "cross-env NODE_ENV=production node scripts/build-extension.mjs --target=firefox",
+    "pack": "cross-env NODE_ENV=production node scripts/build-extension.mjs --pack",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "cross-env": "^10.1.0",
+    "playwright": "^1.65.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+release/
+coverage/
+test-results/
+playwright-report/
+.env
+.env.*
+*.cookies.json
+*.backup.json
+*.cookira.enc.json
+*.log
+.DS_Store
+Thumbs.db
