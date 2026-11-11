@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+/*
+ * Cookira — Cyberpunk / Terminal Neon Design Tokens
+ * Automatic OS/Browser Dark-Light Synchronization + Manual Override via [data-theme]
+ */
+:root {
+  --ck-bg: #050811;
+  --ck-surface: #0a101f;
+  --ck-surface-alt: #070b15;
+  --ck-border: rgba(34, 211, 238, 0.28);
+  --ck-border-subtle: #1e293b;
+  --ck-border-strong: #22d3ee;
+  --ck-text: #e2e8f0;
+  --ck-text-muted: #94a3b8;
+  --ck-accent: #22d3ee;
+  --ck-accent-fg: #020617;
+  --ck-accent-soft: rgba(34, 211, 238, 0.14);
+  --ck-success: #34d399;
+  --ck-success-soft: rgba(52, 211, 153, 0.14);
+  --ck-warn: #fbbf24;
+  --ck-warn-soft: rgba(251, 191, 36, 0.14);
+  --ck-danger: #fb7185;
+  --ck-danger-soft: rgba(251, 113, 133, 0.14);
+  --ck-shadow: 0 0 24px rgba(34, 211, 238, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --ck-bg: #eef2f6;
+    --ck-surface: #ffffff;
+    --ck-surface-alt: #f8fafc;
+    --ck-border: #cbd5e1;
+    --ck-border-subtle: #e2e8f0;
+    --ck-border-strong: #0891b2;
+    --ck-text: #0f172a;
+    --ck-text-muted: #475569;
+    --ck-accent: #0891b2;
+    --ck-accent-fg: #ffffff;
+    --ck-accent-soft: #ecfeff;
+    --ck-success: #0d9488;
+    --ck-success-soft: #f0fdfa;
+    --ck-warn: #b45309;
+    --ck-warn-soft: #fef3c7;
+    --ck-danger: #be123c;
+    --ck-danger-soft: #fff1f2;
+    --ck-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  }
+}
+
+:root[data-theme='light'] {
+  --ck-bg: #eef2f6;
+  --ck-surface: #ffffff;
+  --ck-surface-alt: #f8fafc;
+  --ck-border: #cbd5e1;
+  --ck-border-subtle: #e2e8f0;
+  --ck-border-strong: #0891b2;
+  --ck-text: #0f172a;
+  --ck-text-muted: #475569;
+  --ck-accent: #0891b2;
+  --ck-accent-fg: #ffffff;
+  --ck-accent-soft: #ecfeff;
+  --ck-success: #0d9488;
+  --ck-success-soft: #f0fdfa;
+  --ck-warn: #b45309;
+  --ck-warn-soft: #fef3c7;
+  --ck-danger: #be123c;
+  --ck-danger-soft: #fff1f2;
+  --ck-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme='dark'] {
+  --ck-bg: #050811;
+  --ck-surface: #0a101f;
+  --ck-surface-alt: #070b15;
+  --ck-border: rgba(34, 211, 238, 0.28);
+  --ck-border-subtle: #1e293b;
+  --ck-border-strong: #22d3ee;
+  --ck-text: #e2e8f0;
+  --ck-text-muted: #94a3b8;
+  --ck-accent: #22d3ee;
+  --ck-accent-fg: #020617;
+  --ck-accent-soft: rgba(34, 211, 238, 0.14);
+  --ck-success: #34d399;
+  --ck-success-soft: rgba(52, 211, 153, 0.14);
+  --ck-warn: #fbbf24;
+  --ck-warn-soft: rgba(251, 191, 36, 0.14);
+  --ck-danger: #fb7185;
+  --ck-danger-soft: rgba(251, 113, 133, 0.14);
+  --ck-shadow: 0 0 24px rgba(34, 211, 238, 0.1);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--ck-bg);
+  color: var(--ck-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.cookira-popup-body {
+  width: 420px;
+  min-height: 540px;
+  max-height: 600px;
+  overflow-x: hidden;
+}
+
+.cookira-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+
+.cookira-chip {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cookira-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.cookira-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cookira-scroll::-webkit-scrollbar-thumb {
+  background: var(--ck-border);
+  border-radius: 3px;
+}
+
+.cookira-input {
+  background-color: var(--ck-surface-alt);
+  color: var(--ck-text);
+  border: 1px solid var(--ck-border);
+  border-radius: 4px;
+  transition: border-color 150ms ease;
+}
+
+.cookira-input:focus {
+  outline: none;
+  border-color: var(--ck-border-strong);
+}
+
+.cookira-btn-primary {
+  background-color: var(--ck-accent);
+  color: var(--ck-accent-fg);
+  border: 1px solid var(--ck-accent);
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.cookira-btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.cookira-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cookira-btn-secondary {
+  background-color: var(--ck-surface);
+  color: var(--ck-text);
+  border: 1px solid var(--ck-border);
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.cookira-btn-secondary:hover:not(:disabled) {
+  border-color: var(--ck-border-strong);
+  background-color: var(--ck-accent-soft);
+}
+
+.cookira-btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cookira-btn-danger {
+  background-color: var(--ck-danger-soft);
+  color: var(--ck-danger);
+  border: 1px solid var(--ck-danger);
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.cookira-btn-danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
