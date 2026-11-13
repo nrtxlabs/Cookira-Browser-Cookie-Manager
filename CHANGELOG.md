@@ -2,6 +2,12 @@
 
 All notable changes to **Cookira — Browser Cookie Manager** will be documented in this file.
 
+## [1.0.2] - 2026-11-13
+
+### Changed
+- **Modular App Architecture**: Extracted `useWorkspaceCallbacks` hook from `App.tsx`, keeping every file under `src/` strictly modular (`<= 300` lines).
+- **Accessibility & Diagnostics**: Added high-contrast `:focus-visible` keyboard focus rings across buttons, selects, and inputs, plus live manifest version readout (`getExtensionVersion()`).
+
 ## [1.0.1] - 2026-11-12
 
 ### Added
