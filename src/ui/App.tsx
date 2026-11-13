@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import type { CookieDraft, CookieRecord, SurfaceMode } from '../core/types';
+import type { CookieDraft, SurfaceMode } from '../core/types';
 import { cookieIdentityId } from '../core/cookieUrl';
 import { computeCookieFilterCounts } from '../core/cookieFilterSort';
 import { useThemeSync } from './hooks/useThemeSync';
@@ -8,6 +8,7 @@ import { useCookiesWorkspace } from './hooks/useCookiesWorkspace';
 import { useProfiles } from './hooks/useProfiles';
 import { useWatcher } from './hooks/useWatcher';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useWorkspaceCallbacks } from './hooks/useWorkspaceCallbacks';
 import { AppHeader } from './components/AppHeader';
 import { ProfileHealthStrip } from './components/ProfileHealthStrip';
 import { LiveWatcherPanel } from './components/LiveWatcherPanel';
@@ -65,74 +66,21 @@ export const App: React.FC<AppProps> = ({ surface }) => {
     return cookieIdentityId(editingDraft.draft.originalKey);
   }, [editingDraft]);
 
-  const handleCopy = useCallback(
-    async (label: string, text: string) => {
-      try {
-        await navigator.clipboard.writeText(text);
-        notify(`Copied ${label} to clipboard`);
-      } catch {
-        notify('Unable to access clipboard');
-      }
-    },
-    [notify],
-  );
-
-  const handleSaveCookie = async (draft: CookieDraft) => {
-    await ws.saveCookie(draft);
-    notify(`Saved cookie "${draft.name}"`);
-    if (!isSplitLayout) {
-      setEditingDraft(null);
-      return;
-    }
-    const originalKey = {
-      name: draft.name,
-      domain: draft.domain,
-      path: draft.path,
-      storeId: draft.storeId,
-      partitionKey: draft.partitionKey,
-    };
-    setEditingDraft({ draft: { ...draft, originalKey }, isNew: false });
-  };
-
-  const handleDeleteCookie = async (cookie: CookieRecord) => {
-    try {
-      await ws.deleteCookie(cookie);
-      if (selectedKeyId === cookieIdentityId(cookie)) setEditingDraft(null);
-      notify(`Deleted "${cookie.name}"`);
-    } catch (err) {
-      notify(err instanceof Error ? err.message : String(err));
-    }
-  };
-
-  const runClearAction = (targets: CookieRecord[], title: string, label: string) => {
-    const exec = async () => {
-      try {
-        const count = await ws.deleteCookiesBatch(targets, label);
-        setEditingDraft(null);
-        notify(`Removed ${count} cookies`);
-      } catch (err) {
-        notify(err instanceof Error ? err.message : String(err));
-      } finally {
-        setConfirmState(null);
-      }
-    };
-    if (!ws.settings.confirmBeforeDelete) return void exec();
-    setConfirmState({
-      title,
-      message: `Delete ${targets.length} cookie(s) from ${ws.scopeAllDomains ? 'visible scopes' : ws.activeHost ?? 'current scope'}? An Undo snapshot will be captured.`,
-      confirmLabel: `Delete (${targets.length})`,
-      action: exec,
+  const { handleCopy, handleSaveCookie, handleDeleteCookie, runClearAction, handleUndo } =
+    useWorkspaceCallbacks({
+      isSplitLayout,
+      confirmBeforeDelete: ws.settings.confirmBeforeDelete,
+      scopeAllDomains: ws.scopeAllDomains,
+      activeHost: ws.activeHost,
+      selectedKeyId,
+      saveCookie: ws.saveCookie,
+      deleteCookie: ws.deleteCookie,
+      deleteCookiesBatch: ws.deleteCookiesBatch,
+      undoLastAction: ws.undoLastAction,
+      setEditingDraft,
+      setConfirmState,
+      notify,
     });
-  };
-
-  const handleUndo = async () => {
-    try {
-      const restored = await ws.undoLastAction();
-      if (restored) notify(`Undone: ${restored.label}`);
-    } catch (err) {
-      notify(err instanceof Error ? err.message : String(err));
-    }
-  };
 
   const domainProfileCount = useMemo(() => {
     if (!ws.activeHost || ws.scopeAllDomains) return profilesApi.profiles.length;
