@@ -253,3 +253,8 @@ export function getTabsApiRaw(): typeof chrome.tabs | null {
 export function getRuntimeApiRaw(): typeof chrome.runtime | null {
   return getWebExtRoot()?.runtime ?? null;
 }
+
+export function getExtensionVersion(): string {
+  const manifest = getRuntimeApiRaw()?.getManifest?.();
+  return manifest?.version ?? 'dev';
+}

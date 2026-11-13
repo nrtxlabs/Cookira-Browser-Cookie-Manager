@@ -2,7 +2,7 @@ import React from 'react';
 import type { CookieStoreInfo, SurfaceMode, UiDensityMode } from '../../core/types';
 import type { DomainHealthSummary } from '../../core/domainHealth';
 import { formatByteSize } from '../../core/domainHealth';
-import { openDashboardTab, openSidePanelView } from '../../core/browserApi';
+import { getExtensionVersion, openDashboardTab, openSidePanelView } from '../../core/browserApi';
 import { CookieIcon, ExpandIcon, PanelIcon, RefreshIcon, SettingsIcon } from './Icons';
 
 interface AppHeaderProps {
@@ -62,7 +62,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           >
             <CookieIcon size={14} />
           </span>
-          <span className="cookira-mono text-xs font-bold tracking-wider uppercase truncate">
+          <span
+            className="cookira-mono text-xs font-bold tracking-wider uppercase truncate"
+            title={`Cookira v${getExtensionVersion()}`}
+          >
             COOKIRA
           </span>
 
