@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { CookieRecord, ExportFormat, ExportScope } from '../../core/types';
 import {
+  serializeCookiesToCurl,
   serializeCookiesToHeader,
   serializeCookiesToJson,
   serializeCookiesToNetscape,
+  serializeCookiesToPythonRequests,
 } from '../../codecs';
 import { encryptCookiesVault } from '../../crypto/encryptedVault';
 import { CopyIcon, DownloadIcon } from './Icons';
@@ -19,7 +21,7 @@ interface ExportPanelProps {
   onNotify: (msg: string) => void;
 }
 
-type UiExportKind = ExportFormat | 'playwright';
+type UiExportKind = ExportFormat | 'playwright' | 'curl' | 'python';
 
 export const ExportPanel: React.FC<ExportPanelProps> = ({
   defaultFormat,
@@ -57,8 +59,10 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     if (format === 'playwright') return serializeCookiesToJson(targetCookies, 'playwright');
     if (format === 'json') return serializeCookiesToJson(targetCookies, 'standard');
     if (format === 'netscape') return serializeCookiesToNetscape(targetCookies);
+    if (format === 'curl') return serializeCookiesToCurl(targetCookies, activeHost);
+    if (format === 'python') return serializeCookiesToPythonRequests(targetCookies, activeHost);
     return serializeCookiesToHeader(targetCookies);
-  }, [format, targetCookies, encryptedText]);
+  }, [format, targetCookies, encryptedText, activeHost]);
 
   const generateEncrypted = async (): Promise<string> => {
     setBusy(true);
@@ -100,7 +104,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
             ? 'cookies.txt'
             : format === 'header'
               ? 'cookie-header.txt'
-              : 'cookies.json';
+              : format === 'curl'
+                ? 'cookies.sh'
+                : format === 'python'
+                  ? 'cookies.py'
+                  : 'cookies.json';
       const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -132,6 +140,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
             <option value="playwright">JSON (Playwright / NRTX Runner)</option>
             <option value="netscape">Netscape HTTP Cookie File (.txt)</option>
             <option value="header">HTTP Cookie: Header String</option>
+            <option value="curl">cURL Command Snippet (.sh)</option>
+            <option value="python">Python requests Snippet (.py)</option>
             <option value="encrypted">Encrypted Vault (.cookira.enc.json)</option>
           </select>
         </label>
