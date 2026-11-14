@@ -42,6 +42,7 @@ interface WorkspaceSplitViewProps {
   onSwitchToAllDomains: () => void;
   onCloseEditor: () => void;
   onSaveCookie: (draft: CookieDraft) => Promise<void>;
+  onCloneCookie: (draft: CookieDraft) => void;
 }
 
 export const WorkspaceSplitView: React.FC<WorkspaceSplitViewProps> = (props) => {
@@ -111,6 +112,7 @@ export const WorkspaceSplitView: React.FC<WorkspaceSplitViewProps> = (props) => 
               showBackButton={!showSplitPane}
               onBack={props.onCloseEditor}
               onSave={props.onSaveCookie}
+              onClone={props.onCloneCookie}
               onDelete={
                 props.editingDraft.isNew
                   ? undefined

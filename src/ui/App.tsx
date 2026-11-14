@@ -193,6 +193,7 @@ export const App: React.FC<AppProps> = ({ surface }) => {
             onSwitchToAllDomains={() => ws.setScopeAllDomains(true)}
             onCloseEditor={() => setEditingDraft(null)}
             onSaveCookie={handleSaveCookie}
+            onCloneCookie={(draft) => setEditingDraft({ draft, isNew: true })}
           />
         )}
       </main>

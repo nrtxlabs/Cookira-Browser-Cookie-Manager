@@ -16,6 +16,7 @@ interface CookieEditorPanelProps {
   showBackButton?: boolean;
   onBack?: () => void;
   onSave: (draft: CookieDraft) => Promise<void>;
+  onClone?: (clonedDraft: CookieDraft) => void;
   onDelete?: () => Promise<void>;
   onCopyText: (label: string, text: string) => void;
 }
@@ -29,6 +30,7 @@ export const CookieEditorPanel: React.FC<CookieEditorPanelProps> = ({
   showBackButton,
   onBack,
   onSave,
+  onClone,
   onDelete,
   onCopyText,
 }) => {
@@ -108,6 +110,23 @@ export const CookieEditorPanel: React.FC<CookieEditorPanelProps> = ({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          {!isNew && onClone && (
+            <button
+              type="button"
+              disabled={isLocked}
+              onClick={() =>
+                onClone({
+                  ...form,
+                  name: `${form.name}_copy`,
+                  originalKey: undefined,
+                })
+              }
+              className="cookira-btn-secondary text-xs px-2 py-1"
+              title="Duplicate this cookie into a new draft"
+            >
+              Clone
+            </button>
+          )}
           <button
             type="button"
             onClick={() => onCopyText('Value', form.value)}
