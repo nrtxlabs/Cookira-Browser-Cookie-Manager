@@ -1,6 +1,6 @@
 {
   "name": "cookira-browser-cookie-manager",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Cookira — Local-first Dual-Target (Chromium MV3 & Firefox WebExtension) Browser Cookie Manager by NRTX Labs",

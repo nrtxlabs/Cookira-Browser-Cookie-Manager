@@ -2,6 +2,13 @@
 
 All notable changes to **Cookira — Browser Cookie Manager** will be documented in this file.
 
+## [1.1.0] - 2026-11-14
+
+### Added
+- **cURL & Python `requests` Export Snippets**: Added shell-escaped POSIX `curl -b` snippet export and Python `requests` cookie dictionary generator (`src/codecs/snippetCodec.ts`).
+- **1-Click Clone Cookie**: Added `Clone` button in `CookieEditorPanel` to duplicate an existing cookie into a fresh `_copy` draft without retyping attributes.
+- **Encrypted Account Profile Backup**: Added `AES-256-GCM + PBKDF2` encrypted export/import (`.cookira-profiles.enc.json`) inside `ProfilesModal`.
+
 ## [1.0.2] - 2026-11-13
 
 ### Changed

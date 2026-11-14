@@ -13,7 +13,7 @@ Local-first, zero-telemetry **Dual-Target (Chromium MV3 & Firefox WebExtension)*
   - **Smart Value Inspector (Read-Only)**: Automatically decodes JWT headers/claims, JSON, URL-encoded strings, and Base64 UTF-8 values without mutating raw cookie payloads.
   - **Domain Health Bar**: Real-time cookie header byte-size monitor with warning thresholds near the 8 KB `HTTP 431` boundary.
 - **Multi-Format Export & Smart Import**:
-  - Export to **Standard JSON**, **Playwright / NRTX Runner JSON** (`.cookies.json`), **Netscape `.txt`** (`#HttpOnly_` aware), **HTTP `Cookie:` Header**, or **AES-256-GCM Encrypted Vault** (`.cookira.enc.json`, PBKDF2 SHA-256 `600,000` iterations).
+  - Export to **Standard JSON**, **Playwright / NRTX Runner JSON** (`.cookies.json`), **Netscape `.txt`** (`#HttpOnly_` aware), **HTTP `Cookie:` Header**, **cURL Command** (`.sh`), **Python `requests` Dict** (`.py`), or **AES-256-GCM Encrypted Vault** (`.cookira.enc.json`, PBKDF2 SHA-256 `600,000` iterations).
   - Import via paste, drag & drop, or file upload with auto-format detection, **Pre-Import Diff** (`New`, `Overwrite`, `Invalid`), and **Merge** vs **Replace Scope** (backed by automatic rollback snapshot).
 - **Session Profiles, Privacy & Live Telemetry**:
   - **1-Click Account Profile Switcher**: Save domain cookie snapshots and switch accounts instantly with Undo protection.
