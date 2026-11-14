@@ -5,9 +5,11 @@ import {
   parseCookiesFromHeader,
   parseCookiesFromJson,
   parseCookiesFromNetscape,
+  serializeCookiesToCurl,
   serializeCookiesToHeader,
   serializeCookiesToJson,
   serializeCookiesToNetscape,
+  serializeCookiesToPythonRequests,
 } from '../../src/codecs';
 import { buildImportPreview } from '../../src/core/cookieTransaction';
 import type { CookieRecord } from '../../src/core/types';
@@ -129,5 +131,19 @@ describe('Multi-format cookie codecs', () => {
 
     expect(preview.map((p) => p.status)).toEqual(['overwrite', 'new', 'invalid']);
     expect(preview[2].errors.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('serializes POSIX-safe cURL and Python requests snippets', () => {
+    const quotedCookie: CookieRecord = {
+      ...SAMPLE[0],
+      name: 'note',
+      value: "a'b",
+    };
+    const curl = serializeCookiesToCurl([quotedCookie], 'threads.com');
+    expect(curl).toContain("curl -sS -b 'note=a'\\''b' 'https://threads.com/'");
+
+    const py = serializeCookiesToPythonRequests(SAMPLE, 'threads.com');
+    expect(py).toContain('import requests');
+    expect(py).toContain('"nrtx_auth":');
   });
 });

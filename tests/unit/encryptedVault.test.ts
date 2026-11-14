@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   decryptCookiesVault,
+  decryptProfilesVault,
   encryptCookiesVault,
+  encryptProfilesVault,
   isEncryptedVaultPayload,
 } from '../../src/crypto/encryptedVault';
-import type { CookieRecord } from '../../src/core/types';
+import type { CookieRecord, SessionProfile } from '../../src/core/types';
 
 const TEST_COOKIES: CookieRecord[] = [
   {
@@ -41,5 +43,23 @@ describe('Encrypted AES-256-GCM Vault', () => {
     await expect(decryptCookiesVault(cipher, 'wrong-pass')).rejects.toThrow(
       'Wrong passphrase or corrupted encrypted vault.',
     );
+  });
+
+  it('encrypts and decrypts account session profiles vault identically', async () => {
+    const profiles: SessionProfile[] = [
+      {
+        id: 'prof_1',
+        name: '@akun_utama',
+        domain: 'threads.com',
+        includeSubdomains: true,
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+        cookies: TEST_COOKIES,
+      },
+    ];
+    const enc = await encryptProfilesVault(profiles, 'profiles-secret');
+    expect(enc).not.toContain('@akun_utama');
+    const dec = await decryptProfilesVault(enc, 'profiles-secret');
+    expect(dec).toEqual(profiles);
   });
 });
