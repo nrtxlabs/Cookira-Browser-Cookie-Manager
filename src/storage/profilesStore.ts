@@ -76,6 +76,33 @@ export async function deleteProfile(id: string): Promise<SessionProfile[]> {
   return updated;
 }
 
+export async function mergeImportedProfiles(
+  incoming: SessionProfile[],
+): Promise<{ merged: SessionProfile[]; importedCount: number }> {
+  const existing = await loadProfiles();
+  const map = new Map<string, SessionProfile>();
+  for (const p of existing) {
+    map.set(`${p.domain}::${p.name.toLowerCase()}`, p);
+  }
+  let importedCount = 0;
+  for (const item of incoming) {
+    if (!item?.name || !item?.domain || !Array.isArray(item.cookies)) continue;
+    const cleanDomain = normalizeDomainHost(item.domain);
+    const key = `${cleanDomain}::${item.name.trim().toLowerCase()}`;
+    map.set(key, {
+      ...item,
+      id: item.id || `prof_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      domain: cleanDomain,
+      name: item.name.trim(),
+      updatedAt: Date.now(),
+    });
+    importedCount += 1;
+  }
+  const merged = [...map.values()];
+  await saveProfilesList(merged);
+  return { merged, importedCount };
+}
+
 export async function switchActiveSessionToProfile(
   profile: SessionProfile,
 ): Promise<{ applied: number; snapshot: UndoSnapshot; rolledBack: boolean }> {

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { CookieRecord, SessionProfile } from '../../core/types';
+import { decryptProfilesVault, encryptProfilesVault } from '../../crypto/encryptedVault';
 import { CloseIcon, TrashIcon, UsersIcon } from './Icons';
 import { SecurityNotice } from './SecurityNotice';
 
@@ -13,6 +14,8 @@ interface ProfilesModalProps {
   onSwitchProfile: (profile: SessionProfile) => Promise<void>;
   onRenameProfile: (id: string, nextName: string) => Promise<void>;
   onDeleteProfile: (id: string) => Promise<void>;
+  onMergeImportedProfiles: (profiles: SessionProfile[]) => Promise<number>;
+  onNotify: (msg: string) => void;
   onClose: () => void;
 }
 
@@ -26,13 +29,18 @@ export const ProfilesModal: React.FC<ProfilesModalProps> = ({
   onSwitchProfile,
   onRenameProfile,
   onDeleteProfile,
+  onMergeImportedProfiles,
+  onNotify,
   onClose,
 }) => {
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [vaultPass, setVaultPass] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => () => setVaultPass(''), []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +64,37 @@ export const ProfilesModal: React.FC<ProfilesModalProps> = ({
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusyId(null);
+    }
+  };
+
+  const handleExportProfiles = async () => {
+    setError(null);
+    try {
+      const payload = await encryptProfilesVault(profiles, vaultPass);
+      const blob = new Blob([payload], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cookira-profiles-${new Date().toISOString().slice(0, 10)}.cookira-profiles.enc.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setVaultPass('');
+      onNotify(`Exported ${profiles.length} encrypted profile(s)`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const handleImportProfiles = async (file: File) => {
+    setError(null);
+    try {
+      const raw = await file.text();
+      const restored = await decryptProfilesVault(raw, vaultPass);
+      const count = await onMergeImportedProfiles(restored);
+      setVaultPass('');
+      onNotify(`Imported ${count} profile(s)`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -123,7 +162,7 @@ export const ProfilesModal: React.FC<ProfilesModalProps> = ({
           </div>
         )}
 
-        <div className="space-y-2 max-h-72 overflow-y-auto cookira-scroll">
+        <div className="space-y-2 max-h-64 overflow-y-auto cookira-scroll">
           {profiles.length === 0 ? (
             <div className="p-4 text-center text-xs" style={{ color: 'var(--ck-text-muted)' }}>
               No saved account profiles yet. Save current cookies above to switch accounts in 1 click.
@@ -198,6 +237,46 @@ export const ProfilesModal: React.FC<ProfilesModalProps> = ({
               </div>
             ))
           )}
+        </div>
+
+        {/* Encrypted Profile Backup Strip */}
+        <div className="pt-2 border-t space-y-2" style={{ borderColor: 'var(--ck-border-subtle)' }}>
+          <span className="cookira-mono text-xs font-semibold uppercase" style={{ color: 'var(--ck-text-muted)' }}>
+            Encrypted Profile Backup (AES-256-GCM)
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <input
+              type="password"
+              value={vaultPass}
+              onChange={(e) => setVaultPass(e.target.value)}
+              placeholder="Backup passphrase (min. 4 chars)"
+              className="cookira-input cookira-mono text-xs px-2.5 py-1 flex-1 min-w-[160px]"
+            />
+            <button
+              type="button"
+              disabled={profiles.length === 0 || vaultPass.length < 4}
+              onClick={() => void handleExportProfiles()}
+              className="cookira-btn-secondary text-xs px-2.5 py-1"
+            >
+              Export Vault
+            </button>
+            <label
+              className={`cookira-btn-secondary text-xs px-2.5 py-1 ${vaultPass ? 'cursor-pointer' : 'opacity-45 pointer-events-none'}`}
+            >
+              <span>Import Vault</span>
+              <input
+                type="file"
+                accept=".json"
+                disabled={!vaultPass}
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImportProfiles(file);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          </div>
         </div>
       </div>
     </div>

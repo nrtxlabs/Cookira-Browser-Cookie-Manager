@@ -4,6 +4,7 @@ import {
   createOrUpdateProfile,
   deleteProfile,
   loadProfiles,
+  mergeImportedProfiles,
   renameProfile,
   switchActiveSessionToProfile,
 } from '../../storage/profilesStore';
@@ -55,6 +56,12 @@ export function useProfiles(onAfterMutate?: (snapshot: UndoSnapshot) => Promise<
     setProfiles(updated);
   }, []);
 
+  const mergeProfilesBatch = useCallback(async (incoming: SessionProfile[]) => {
+    const res = await mergeImportedProfiles(incoming);
+    setProfiles(res.merged);
+    return res.importedCount;
+  }, []);
+
   return {
     profiles,
     reloadProfiles,
@@ -62,5 +69,6 @@ export function useProfiles(onAfterMutate?: (snapshot: UndoSnapshot) => Promise<
     applyProfile,
     renameSavedProfile,
     removeSavedProfile,
+    mergeProfilesBatch,
   };
 }

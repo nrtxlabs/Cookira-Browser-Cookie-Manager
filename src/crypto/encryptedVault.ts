@@ -1,8 +1,9 @@
-import type { CookieRecord } from '../core/types';
+import type { CookieRecord, SessionProfile } from '../core/types';
 
 export interface EncryptedVaultEnvelope {
   format: 'cookira-vault';
   version: 1;
+  vaultKind?: 'cookies' | 'profiles';
   kdf: 'PBKDF2-SHA256';
   iterations: number;
   cipher: 'AES-GCM';
@@ -73,10 +74,11 @@ export function isEncryptedVaultPayload(rawText: string): boolean {
   }
 }
 
-export async function encryptCookiesVault(
-  cookies: CookieRecord[],
+async function encryptVaultPayload(
+  payload: unknown,
   passphrase: string,
   domainLabel: string,
+  vaultKind: 'cookies' | 'profiles',
 ): Promise<string> {
   if (!passphrase || passphrase.length < 4) {
     throw new Error('Passphrase must be at least 4 characters long.');
@@ -88,7 +90,7 @@ export async function encryptCookiesVault(
   globalThis.crypto.getRandomValues(iv);
 
   const key = await deriveAesGcmKey(passphrase, salt, DEFAULT_PBKDF2_ITERATIONS, 'encrypt');
-  const plaintext = new TextEncoder().encode(JSON.stringify({ cookies }));
+  const plaintext = new TextEncoder().encode(JSON.stringify(payload));
   const cipherBuffer = await globalThis.crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     key,
@@ -98,6 +100,7 @@ export async function encryptCookiesVault(
   const envelope: EncryptedVaultEnvelope = {
     format: 'cookira-vault',
     version: 1,
+    vaultKind,
     kdf: 'PBKDF2-SHA256',
     iterations: DEFAULT_PBKDF2_ITERATIONS,
     cipher: 'AES-GCM',
@@ -111,10 +114,10 @@ export async function encryptCookiesVault(
   return JSON.stringify(envelope, null, 2);
 }
 
-export async function decryptCookiesVault(
+async function decryptVaultPayload<T>(
   rawJson: string,
   passphrase: string,
-): Promise<{ domain: string; createdAt: number; cookies: CookieRecord[] }> {
+): Promise<{ envelope: EncryptedVaultEnvelope; payload: T }> {
   if (!passphrase) {
     throw new Error('Passphrase is required to decrypt vault.');
   }
@@ -135,7 +138,6 @@ export async function decryptCookiesVault(
   const salt = base64ToBytes(envelope.saltB64);
   const iv = base64ToBytes(envelope.ivB64);
   const ciphertext = base64ToBytes(envelope.ciphertextB64);
-
   const key = await deriveAesGcmKey(passphrase, salt, envelope.iterations, 'decrypt');
 
   try {
@@ -145,16 +147,58 @@ export async function decryptCookiesVault(
       ciphertext,
     );
     const decoded = new TextDecoder('utf-8').decode(plainBuffer);
-    const parsed = JSON.parse(decoded) as { cookies?: CookieRecord[] };
-    if (!Array.isArray(parsed.cookies)) {
-      throw new Error('Corrupted vault payload.');
-    }
     return {
-      domain: envelope.domain ?? '',
-      createdAt: envelope.createdAt ?? 0,
-      cookies: parsed.cookies,
+      envelope: envelope as EncryptedVaultEnvelope,
+      payload: JSON.parse(decoded) as T,
     };
   } catch {
     throw new Error('Wrong passphrase or corrupted encrypted vault.');
   }
+}
+
+export async function encryptCookiesVault(
+  cookies: CookieRecord[],
+  passphrase: string,
+  domainLabel: string,
+): Promise<string> {
+  return encryptVaultPayload({ cookies }, passphrase, domainLabel, 'cookies');
+}
+
+export async function decryptCookiesVault(
+  rawJson: string,
+  passphrase: string,
+): Promise<{ domain: string; createdAt: number; cookies: CookieRecord[] }> {
+  const { envelope, payload } = await decryptVaultPayload<{ cookies?: CookieRecord[] }>(
+    rawJson,
+    passphrase,
+  );
+  if (!Array.isArray(payload.cookies)) {
+    throw new Error('Corrupted vault payload.');
+  }
+  return {
+    domain: envelope.domain ?? '',
+    createdAt: envelope.createdAt ?? 0,
+    cookies: payload.cookies,
+  };
+}
+
+export async function encryptProfilesVault(
+  profiles: SessionProfile[],
+  passphrase: string,
+): Promise<string> {
+  return encryptVaultPayload({ profiles }, passphrase, 'profiles-backup', 'profiles');
+}
+
+export async function decryptProfilesVault(
+  rawJson: string,
+  passphrase: string,
+): Promise<SessionProfile[]> {
+  const { payload } = await decryptVaultPayload<{ profiles?: SessionProfile[] }>(
+    rawJson,
+    passphrase,
+  );
+  if (!Array.isArray(payload.profiles)) {
+    throw new Error('Encrypted file does not contain Cookira session profiles.');
+  }
+  return payload.profiles;
 }

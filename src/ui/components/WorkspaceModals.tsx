@@ -43,6 +43,7 @@ interface WorkspaceModalsProps {
   onSwitchProfile: (profile: SessionProfile) => Promise<void>;
   onRenameProfile: (id: string, nextName: string) => Promise<void>;
   onDeleteProfile: (id: string) => Promise<void>;
+  onMergeImportedProfiles: (profiles: SessionProfile[]) => Promise<number>;
   onSaveSettings: (next: CookiraSettings) => Promise<void>;
   onNotify: (msg: string) => void;
 }
@@ -72,6 +73,7 @@ export const WorkspaceModals: React.FC<WorkspaceModalsProps> = ({
   onSwitchProfile,
   onRenameProfile,
   onDeleteProfile,
+  onMergeImportedProfiles,
   onSaveSettings,
   onNotify,
 }) => {
@@ -103,6 +105,8 @@ export const WorkspaceModals: React.FC<WorkspaceModalsProps> = ({
           onSwitchProfile={onSwitchProfile}
           onRenameProfile={onRenameProfile}
           onDeleteProfile={onDeleteProfile}
+          onMergeImportedProfiles={onMergeImportedProfiles}
+          onNotify={onNotify}
           onClose={onCloseProfiles}
         />
       )}

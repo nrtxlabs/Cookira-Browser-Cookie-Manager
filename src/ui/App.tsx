@@ -242,6 +242,7 @@ export const App: React.FC<AppProps> = ({ surface }) => {
         }}
         onRenameProfile={profilesApi.renameSavedProfile}
         onDeleteProfile={profilesApi.removeSavedProfile}
+        onMergeImportedProfiles={profilesApi.mergeProfilesBatch}
         onSaveSettings={async (next) => { await ws.updateSettings(next); }}
         onNotify={notify}
       />
