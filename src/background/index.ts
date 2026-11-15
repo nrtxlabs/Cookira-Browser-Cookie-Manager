@@ -6,7 +6,11 @@ import {
   getTabsApiRaw,
   removeBrowserCookie,
 } from '../core/browserApi';
-import { domainMatchesHost, extractInspectableHost } from '../core/cookieUrl';
+import {
+  domainMatchesHost,
+  domainMatchesPattern,
+  extractInspectableHost,
+} from '../core/cookieUrl';
 import { isDomainProtectedFromClean, loadSettings } from '../storage/settingsStore';
 import { appendWatcherEvent, mapChangeInfoCookie } from '../storage/watcherStore';
 
@@ -38,7 +42,7 @@ export function selectAutoCleanTargets(options: {
       }
     }
     return activeRules.some((rule) =>
-      domainMatchesHost(cookie.domain, rule.domainPattern, true),
+      domainMatchesPattern(cookie.domain, rule.domainPattern),
     );
   });
 }

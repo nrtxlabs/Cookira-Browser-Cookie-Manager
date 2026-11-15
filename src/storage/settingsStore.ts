@@ -1,6 +1,6 @@
 import type { AutoCleanRule, CookiraSettings } from '../core/types';
 import { storageLocalGet, storageLocalSet } from '../core/browserApi';
-import { domainMatchesHost, normalizeDomainHost } from '../core/cookieUrl';
+import { domainMatchesPattern, normalizeDomainHost } from '../core/cookieUrl';
 
 const SETTINGS_KEY = 'cookira_settings_v1';
 
@@ -127,12 +127,12 @@ export function parseSettingsBackupJson(rawText: string): CookiraSettings {
 
 export function isDomainLocked(host: string | null, settings: CookiraSettings): boolean {
   if (!host) return false;
-  return settings.lockedDomains.some((locked) => domainMatchesHost(host, locked, true));
+  return settings.lockedDomains.some((locked) => domainMatchesPattern(host, locked));
 }
 
 export function isDomainProtectedFromClean(host: string, settings: CookiraSettings): boolean {
   return (
-    settings.lockedDomains.some((d) => domainMatchesHost(host, d, true)) ||
-    settings.protectedWhitelist.some((d) => domainMatchesHost(host, d, true))
+    settings.lockedDomains.some((d) => domainMatchesPattern(host, d)) ||
+    settings.protectedWhitelist.some((d) => domainMatchesPattern(host, d))
   );
 }

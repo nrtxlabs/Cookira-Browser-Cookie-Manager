@@ -64,6 +64,46 @@ export function domainMatchesHost(
   return false;
 }
 
+function matchGlob(text: string, pattern: string): boolean {
+  let ti = 0;
+  let pi = 0;
+  let starIdx = -1;
+  let matchIdx = 0;
+
+  while (ti < text.length) {
+    if (pi < pattern.length && pattern[pi] === text[ti]) {
+      ti++;
+      pi++;
+    } else if (pi < pattern.length && pattern[pi] === '*') {
+      starIdx = pi++;
+      matchIdx = ti;
+    } else if (starIdx !== -1) {
+      pi = starIdx + 1;
+      ti = ++matchIdx;
+    } else {
+      return false;
+    }
+  }
+  while (pi < pattern.length && pattern[pi] === '*') pi++;
+  return pi === pattern.length;
+}
+
+/**
+ * Match a cookie domain against either an exact/subdomain rule (`example.com`)
+ * or a linear-time glob wildcard pattern containing `*` (e.g. `*.tracker.example`, `ads-*.net`).
+ */
+export function domainMatchesPattern(cookieDomain: string, pattern: string): boolean {
+  const normalizedPattern = normalizeDomainHost(pattern);
+  const normalizedCookie = normalizeDomainHost(cookieDomain);
+  if (!normalizedPattern || !normalizedCookie) return false;
+
+  if (!normalizedPattern.includes('*')) {
+    return domainMatchesHost(normalizedCookie, normalizedPattern, true);
+  }
+
+  return matchGlob(normalizedCookie, normalizedPattern.replace(/\*+/g, '*'));
+}
+
 /**
  * Build a deterministic identity string for deduplication, React keys, and diffing.
  */
