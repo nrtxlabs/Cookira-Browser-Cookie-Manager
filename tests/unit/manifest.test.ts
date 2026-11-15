@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildExtensionManifest } from '../../src/manifest/buildManifest.mjs';
 import { selectAutoCleanTargets } from '../../src/background/index';
+import { domainMatchesPattern } from '../../src/core/cookieUrl';
 import { DEFAULT_SETTINGS } from '../../src/storage/settingsStore';
 import type { CookieRecord } from '../../src/core/types';
 
@@ -76,5 +77,51 @@ describe('Dual-target Manifest V3 & Auto-Clean Safety', () => {
       trigger: 'startup',
     });
     expect(targets.map((c) => c.name)).toEqual(['tracker']);
+  });
+
+  it('supports glob wildcard rules in auto-clean while honoring wildcard protected exclusions', () => {
+    expect(domainMatchesPattern('pixel.tracker.example', '*.tracker.example')).toBe(true);
+    expect(domainMatchesPattern('eu.pixel.tracker.example', '*.tracker.example')).toBe(true);
+    expect(domainMatchesPattern('ads-us.example.net', 'ads-*.example.net')).toBe(true);
+    expect(domainMatchesPattern('app.example.net', '*.tracker.example')).toBe(false);
+
+    const makeCookie = (name: string, domain: string): CookieRecord => ({
+      name,
+      value: 'v',
+      domain,
+      path: '/',
+      secure: true,
+      httpOnly: false,
+      hostOnly: false,
+      session: true,
+      sameSite: 'lax',
+      storeId: '0',
+    });
+
+    const cookies: CookieRecord[] = [
+      makeCookie('px', '.pixel.tracker.example'),
+      makeCookie('ad', 'ads-eu.example.net'),
+      makeCookie('vip_sso', 'sso.vip.tracker.example'),
+      makeCookie('corp_ok', 'portal.corp.example'),
+    ];
+
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      autoCleanEnabled: true,
+      lockedDomains: ['*.vip.tracker.example'],
+      protectedWhitelist: ['*corp*'],
+      autoCleanRules: [
+        { id: 'w1', domainPattern: '*.tracker.example', trigger: 'startup' as const, enabled: true },
+        { id: 'w2', domainPattern: 'ads-*.example.net', trigger: 'startup' as const, enabled: true },
+        { id: 'w3', domainPattern: '*.corp.example', trigger: 'startup' as const, enabled: true },
+      ],
+    };
+
+    const targets = selectAutoCleanTargets({
+      cookies,
+      settings,
+      trigger: 'startup',
+    });
+    expect(targets.map((c) => c.name)).toEqual(['px', 'ad']);
   });
 });
