@@ -2,6 +2,12 @@
 
 All notable changes to **Cookira — Browser Cookie Manager** will be documented in this file.
 
+## [1.2.0] - 2026-11-15
+
+### Added
+- **Glob Wildcard Domain Matching**: Added linear-time `domainMatchesPattern` matcher (`src/core/cookieUrl.ts`) supporting glob `*` wildcards (e.g., `*.tracker.example`, `ads-*.net`) across Auto-Clean rules, `lockedDomains`, and `protectedWhitelist`.
+- **Live Watcher Cause Filtering & Metadata Audit Export**: Added mutation cause dropdown (`all`, `explicit`, `overwrite`, `expired`, `evicted`, `expired_overwrite`) and `Export JSON` audit download in `LiveWatcherPanel` (metadata-only export omitting raw cookie values for session safety).
+
 ## [1.1.0] - 2026-11-14
 
 ### Added

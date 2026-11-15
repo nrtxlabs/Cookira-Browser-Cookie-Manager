@@ -18,8 +18,8 @@ Local-first, zero-telemetry **Dual-Target (Chromium MV3 & Firefox WebExtension)*
 - **Session Profiles, Privacy & Live Telemetry**:
   - **1-Click Account Profile Switcher**: Save domain cookie snapshots and switch accounts instantly with Undo protection.
   - **Domain Lock**: Lock critical domains against accidental edits or deletions.
-  - **Live Cookie Watcher**: Real-time `cookies.onChanged` event log persisted via `storage.session`.
-  - **Auto-Clean Whitelist**: Disabled by default, includes Dry-Run Preview, and never touches locked or whitelisted domains.
+  - **Live Cookie Watcher**: Real-time `cookies.onChanged` event log persisted via `storage.session`, with mutation `cause` filter (`explicit`, `overwrite`, `expired`, `evicted`) and metadata-only Audit JSON export (omitting raw cookie secrets).
+  - **Auto-Clean Whitelist**: Disabled by default, supports glob `*` wildcards (e.g., `*.tracker.example`), includes Dry-Run Preview, and never touches locked or whitelisted domains.
 - **Automatic Theme Sync**: Defaults to `System (Auto)` following the browser/OS Dark or Light color scheme in real time, with manual `Dark Neon` and `Light Ink` overrides in Settings (`Alt+S`).
 
 ## Quick Start (Windows / macOS / Linux)
