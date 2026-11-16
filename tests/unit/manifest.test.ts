@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { buildExtensionManifest } from '../../src/manifest/buildManifest.mjs';
 import { selectAutoCleanTargets } from '../../src/background/index';
 import { domainMatchesPattern } from '../../src/core/cookieUrl';
-import { DEFAULT_SETTINGS } from '../../src/storage/settingsStore';
+import {
+  DEFAULT_SETTINGS,
+  exportSettingsJson,
+  parseSettingsBackupJson,
+  sanitizeSettings,
+} from '../../src/storage/settingsStore';
 import type { CookieRecord } from '../../src/core/types';
 
 describe('Dual-target Manifest V3 & Auto-Clean Safety', () => {
@@ -123,5 +128,32 @@ describe('Dual-target Manifest V3 & Auto-Clean Safety', () => {
       trigger: 'startup',
     });
     expect(targets.map((c) => c.name)).toEqual(['px', 'ad']);
+  });
+
+  it('migrates legacy v1 settings payloads to schemaVersion 2 with preferredStoreFilter', () => {
+    const migrated = sanitizeSettings({
+      themeMode: 'dark',
+      uiMode: 'advanced',
+      lockedDomains: ['BankMega.com'],
+    });
+    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.preferredStoreFilter).toBe('all');
+    expect(migrated.themeMode).toBe('dark');
+    expect(migrated.lockedDomains).toEqual(['bankmega.com']);
+
+    const legacyBackup = JSON.stringify({
+      format: 'cookira-settings',
+      version: 1,
+      settings: {
+        uiMode: 'advanced',
+        protectedWhitelist: ['*.bankmega.com'],
+      },
+    });
+    const parsedLegacy = parseSettingsBackupJson(legacyBackup);
+    expect(parsedLegacy.schemaVersion).toBe(2);
+    expect(parsedLegacy.protectedWhitelist).toEqual(['*.bankmega.com']);
+
+    const exportedV2 = JSON.parse(exportSettingsJson(migrated)) as { version: number };
+    expect(exportedV2.version).toBe(2);
   });
 });

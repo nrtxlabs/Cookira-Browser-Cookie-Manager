@@ -250,10 +250,14 @@ async function runE2E() {
     assert.ok(echoRes2.cookieHeader.includes('imported_pw=val_999'), 'Imported cookie must be active in browser');
     console.log('[E2E] Verified file upload import (invalid + valid Playwright JSON)');
 
-    // 6. Encrypted Export download & wrong/right passphrase decryption
+    // 6. cURL Export & Encrypted Vault v2 download & wrong/right passphrase decryption
     await dashPage.getByRole('button', { name: 'Export' }).click();
     const exportDialog = dashPage.getByRole('dialog', { name: 'Export and Import Cookies' });
     await exportDialog.getByText(/hijack your account/i).waitFor({ state: 'visible' });
+    await exportDialog.locator('select').first().selectOption('curl');
+    const curlSnippet = await exportDialog.locator('textarea').inputValue();
+    assert.ok(curlSnippet.includes('curl -sS -b '), 'cURL export must emit shell-safe curl -sS -b snippet');
+
     await exportDialog.locator('select').first().selectOption('encrypted');
     await exportDialog.getByText(/AES-256-GCM/i).first().waitFor({ state: 'visible' });
     await exportDialog.getByPlaceholder('Min. 4 characters (never stored)').fill('nrtx-vault-e2e');
@@ -264,7 +268,10 @@ async function runE2E() {
     const encPath = path.join(fixturesDir, download.suggestedFilename());
     await download.saveAs(encPath);
     const encContent = fs.readFileSync(encPath, 'utf8');
-    assert.ok(encContent.includes('"cookira-vault"'));
+    const encParsed = JSON.parse(encContent);
+    assert.equal(encParsed.format, 'cookira-vault');
+    assert.equal(encParsed.version, 2, 'Cookira v2 exports must emit vault version 2');
+    assert.equal(encParsed.exportedBy, 'cookira-v2');
     assert.ok(!encContent.includes('val_999'), 'Encrypted vault must not contain plaintext cookie values');
 
     await exportDialog.getByRole('button', { name: 'Import Cookies' }).click();
@@ -300,8 +307,25 @@ async function runE2E() {
     assert.equal(await dashPage.getByRole('button', { name: 'Add' }).isDisabled(), true);
     await dashPage.getByRole('button', { name: 'Locked', exact: true }).click();
 
+    await dashPage.getByRole('button', { name: 'Inspect site_boot' }).click();
+    await dashPage.getByRole('button', { name: 'Clone' }).click();
+    await dashPage.getByText('New Cookie').waitFor({ state: 'visible' });
+    assert.equal(await dashPage.getByPlaceholder('session_token').inputValue(), 'site_boot_copy');
+    await dashPage.getByRole('button', { name: 'Create Cookie' }).click();
+    await dashPage.getByText('Saved cookie "site_boot_copy"').waitFor({ state: 'visible' });
+
     await dashPage.getByRole('button', { name: /Live Watcher/ }).click();
     await dashPage.getByText('Live Cookie Watcher').waitFor({ state: 'visible' });
+    await dashPage.getByLabel('Filter watcher mutation cause').selectOption('explicit');
+    const [auditDownload] = await Promise.all([
+      dashPage.waitForEvent('download'),
+      dashPage.getByRole('button', { name: 'Export JSON' }).click(),
+    ]);
+    const auditPath = path.join(fixturesDir, auditDownload.suggestedFilename());
+    await auditDownload.saveAs(auditPath);
+    const auditParsed = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
+    assert.equal(auditParsed.format, 'cookira-watcher-audit');
+    assert.equal(auditParsed.causeFilter, 'explicit');
 
     await dashPage.getByRole('button', { name: 'Open Settings' }).click();
     const settingsDialog = dashPage.getByRole('dialog', { name: 'Cookira Settings' });
