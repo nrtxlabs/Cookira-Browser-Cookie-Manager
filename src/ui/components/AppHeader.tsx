@@ -2,7 +2,12 @@ import React from 'react';
 import type { CookieStoreInfo, SurfaceMode, UiDensityMode } from '../../core/types';
 import type { DomainHealthSummary } from '../../core/domainHealth';
 import { formatByteSize } from '../../core/domainHealth';
-import { getExtensionVersion, openDashboardTab, openSidePanelView } from '../../core/browserApi';
+import {
+  getExtensionVersion,
+  openDashboardTab,
+  openSidePanelView,
+  resolveStoreLabel,
+} from '../../core/browserApi';
 import { CookieIcon, ExpandIcon, PanelIcon, RefreshIcon, SettingsIcon } from './Icons';
 
 interface AppHeaderProps {
@@ -207,7 +212,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <option value="all">All Stores</option>
             {stores.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.incognito ? `Incognito (${s.id})` : `Store ${s.id}`}
+                {s.label ?? resolveStoreLabel(s.id, s.incognito)}
               </option>
             ))}
           </select>

@@ -1,5 +1,11 @@
 import React from 'react';
-import type { CookieDraft, CookieRecord, CookiraSettings, UiDensityMode } from '../../core/types';
+import type {
+  CookieDraft,
+  CookieRecord,
+  CookieStoreInfo,
+  CookiraSettings,
+  UiDensityMode,
+} from '../../core/types';
 import type { CookieFilterMode, CookieSortMode } from '../../core/cookieFilterSort';
 import { cookieIdentityId } from '../../core/cookieUrl';
 import { isCookieExpired } from '../../core/domainHealth';
@@ -20,6 +26,7 @@ interface WorkspaceSplitViewProps {
   filteredCookies: CookieRecord[];
   selectedCookies: CookieRecord[];
   allCookies: CookieRecord[];
+  stores: CookieStoreInfo[];
   selectedIds: Set<string>;
   selectedKeyId: string | null;
   editingDraft: { draft: CookieDraft; isNew: boolean } | null;
@@ -85,6 +92,7 @@ export const WorkspaceSplitView: React.FC<WorkspaceSplitViewProps> = (props) => 
             <CookieList
               uiMode={props.uiMode}
               cookies={props.filteredCookies}
+              stores={props.stores}
               selectedKeyId={props.selectedKeyId}
               selectedIds={props.selectedIds}
               isLocked={props.currentDomainLocked}

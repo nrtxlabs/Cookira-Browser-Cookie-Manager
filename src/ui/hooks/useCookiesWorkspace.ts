@@ -80,7 +80,10 @@ export function useCookiesWorkspace() {
         if (!host) {
           setScopeAllDomains(true);
         }
-        if (tabInfo?.cookieStoreId) {
+        const preferred = loadedSettings.preferredStoreFilter;
+        if (preferred && preferred !== 'all' && loadedStores.some((s) => s.id === preferred)) {
+          setActiveStoreId(preferred);
+        } else if (tabInfo?.cookieStoreId) {
           setActiveStoreId(tabInfo.cookieStoreId);
         }
       }

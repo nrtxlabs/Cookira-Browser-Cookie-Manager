@@ -119,7 +119,10 @@ export const App: React.FC<AppProps> = ({ surface }) => {
           setEditingDraft(null);
         }}
         onToggleSubdomains={ws.setIncludeSubdomains}
-        onSelectStore={ws.setActiveStoreId}
+        onSelectStore={(storeId) => {
+          ws.setActiveStoreId(storeId);
+          void ws.updateSettings({ ...ws.settings, preferredStoreFilter: storeId });
+        }}
         onRefresh={() => void ws.refreshAll()}
         onOpenSettings={() => setSettingsOpen(true)}
       />
@@ -168,6 +171,7 @@ export const App: React.FC<AppProps> = ({ surface }) => {
             filteredCookies={ws.filteredCookies}
             selectedCookies={ws.selectedCookies}
             allCookies={ws.allCookies}
+            stores={ws.stores}
             selectedIds={ws.selectedIds}
             selectedKeyId={selectedKeyId}
             editingDraft={editingDraft}

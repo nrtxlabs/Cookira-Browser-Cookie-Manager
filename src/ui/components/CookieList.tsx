@@ -1,5 +1,6 @@
 import React from 'react';
-import type { CookieRecord, UiDensityMode } from '../../core/types';
+import type { CookieRecord, CookieStoreInfo, UiDensityMode } from '../../core/types';
+import { resolveStoreLabel } from '../../core/browserApi';
 import { cookieIdentityId } from '../../core/cookieUrl';
 import {
   computeCookieBytes,
@@ -12,6 +13,7 @@ import { CopyIcon, TrashIcon } from './Icons';
 interface CookieListProps {
   uiMode: UiDensityMode;
   cookies: CookieRecord[];
+  stores?: CookieStoreInfo[];
   selectedKeyId: string | null;
   selectedIds: Set<string>;
   isLocked: boolean;
@@ -27,6 +29,7 @@ interface CookieListProps {
 export const CookieList: React.FC<CookieListProps> = ({
   uiMode,
   cookies,
+  stores,
   selectedKeyId,
   selectedIds,
   isLocked,
@@ -226,6 +229,23 @@ export const CookieList: React.FC<CookieListProps> = ({
                       }}
                     >
                       CHIPS
+                    </span>
+                  )}
+                  {((stores && stores.length > 1) ||
+                    (cookie.storeId &&
+                      cookie.storeId !== '0' &&
+                      cookie.storeId !== 'firefox-default')) && (
+                    <span
+                      className="cookira-chip cookira-mono text-[11px] px-1.5 py-0.5 rounded border"
+                      style={{
+                        backgroundColor: 'var(--ck-surface-alt)',
+                        borderColor: 'var(--ck-border-strong)',
+                        color: 'var(--ck-text)',
+                      }}
+                      title={`Cookie store ${cookie.storeId ?? '0'}`}
+                    >
+                      {stores?.find((s) => s.id === (cookie.storeId ?? '0'))?.label ??
+                        resolveStoreLabel(cookie.storeId ?? '0')}
                     </span>
                   )}
                 </div>

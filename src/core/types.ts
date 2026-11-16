@@ -78,8 +78,10 @@ export interface AutoCleanRule {
 }
 
 export interface CookiraSettings {
+  schemaVersion: 2;
   themeMode: ThemeMode;
   uiMode: UiDensityMode;
+  preferredStoreFilter: string;
   defaultExportFormat: DefaultExportFormat;
   includeSubdomainsByDefault: boolean;
   confirmBeforeDelete: boolean;
@@ -116,4 +118,6 @@ export interface CookieStoreInfo {
   id: string;
   tabIds: number[];
   incognito?: boolean;
+  label?: string;
+  containerColor?: string;
 }

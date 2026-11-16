@@ -5,8 +5,10 @@ import { domainMatchesPattern, normalizeDomainHost } from '../core/cookieUrl';
 const SETTINGS_KEY = 'cookira_settings_v1';
 
 export const DEFAULT_SETTINGS: CookiraSettings = {
+  schemaVersion: 2,
   themeMode: 'system',
   uiMode: 'simple',
+  preferredStoreFilter: 'all',
   defaultExportFormat: 'json',
   includeSubdomainsByDefault: true,
   confirmBeforeDelete: true,
@@ -63,8 +65,13 @@ export function sanitizeSettings(raw: Partial<CookiraSettings> | null | undefine
     : [];
 
   return {
+    schemaVersion: 2,
     themeMode,
     uiMode,
+    preferredStoreFilter:
+      typeof src.preferredStoreFilter === 'string' && src.preferredStoreFilter.trim()
+        ? src.preferredStoreFilter.trim()
+        : DEFAULT_SETTINGS.preferredStoreFilter,
     defaultExportFormat,
     includeSubdomainsByDefault:
       typeof src.includeSubdomainsByDefault === 'boolean'
@@ -105,7 +112,7 @@ export function exportSettingsJson(settings: CookiraSettings): string {
   return JSON.stringify(
     {
       format: 'cookira-settings',
-      version: 1,
+      version: 2,
       exportedAt: Date.now(),
       settings,
     },

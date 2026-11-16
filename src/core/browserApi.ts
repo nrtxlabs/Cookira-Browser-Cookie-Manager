@@ -14,6 +14,11 @@ type RawBrowserGlobal = typeof chrome & {
   sidebarAction?: {
     open?: () => Promise<void>;
   };
+  contextualIdentities?: {
+    query?: (
+      details: Record<string, never>,
+    ) => Promise<Array<{ cookieStoreId: string; name: string; color?: string }>>;
+  };
 };
 
 function getWebExtRoot(): RawBrowserGlobal | null {
@@ -123,15 +128,46 @@ export async function removeBrowserCookie(
   }
 }
 
+export function resolveStoreLabel(
+  storeId: string,
+  incognito?: boolean,
+  containerName?: string,
+): string {
+  if (containerName) return containerName;
+  if (incognito) return 'Incognito / Private';
+  if (storeId === '0' || storeId === 'firefox-default') return 'Default';
+  return `Store ${storeId}`;
+}
+
 export async function getAllCookieStores(): Promise<CookieStoreInfo[]> {
-  const api = getWebExtRoot()?.cookies;
-  if (!api?.getAllCookieStores) return [{ id: '0', tabIds: [] }];
+  const root = getWebExtRoot();
+  const api = root?.cookies;
+  if (!api?.getAllCookieStores) return [{ id: '0', tabIds: [], label: 'Default' }];
+
+  const containerMap = new Map<string, { name: string; color?: string }>();
+  if (root?.contextualIdentities?.query) {
+    try {
+      const identities = await root.contextualIdentities.query({});
+      for (const id of identities) {
+        containerMap.set(id.cookieStoreId, { name: id.name, color: id.color });
+      }
+    } catch {
+      // Optional container permission unavailable
+    }
+  }
+
   const stores = await api.getAllCookieStores();
-  return stores.map((store) => ({
-    id: store.id,
-    tabIds: [...store.tabIds],
-    incognito: (store as chrome.cookies.CookieStore & { incognito?: boolean }).incognito,
-  }));
+  return stores.map((store) => {
+    const incognito = (store as chrome.cookies.CookieStore & { incognito?: boolean }).incognito;
+    const container = containerMap.get(store.id);
+    return {
+      id: store.id,
+      tabIds: [...store.tabIds],
+      incognito,
+      label: resolveStoreLabel(store.id, incognito, container?.name),
+      containerColor: container?.color,
+    };
+  });
 }
 
 export async function getActiveTabInfo(): Promise<{
