@@ -2,7 +2,8 @@ import type { CookieRecord, SessionProfile } from '../core/types';
 
 export interface EncryptedVaultEnvelope {
   format: 'cookira-vault';
-  version: 1;
+  version: 1 | 2;
+  exportedBy?: string;
   vaultKind?: 'cookies' | 'profiles';
   kdf: 'PBKDF2-SHA256';
   iterations: number;
@@ -12,6 +13,13 @@ export interface EncryptedVaultEnvelope {
   saltB64: string;
   ivB64: string;
   ciphertextB64: string;
+}
+
+function buildVaultAad(vaultKind: string, domain: string): Uint8Array<ArrayBuffer> {
+  const bytes = new TextEncoder().encode(`cookira-vault:v2:${vaultKind}:${domain}`);
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return new Uint8Array(buffer);
 }
 
 const DEFAULT_PBKDF2_ITERATIONS = 600_000;
@@ -68,7 +76,10 @@ async function deriveAesGcmKey(
 export function isEncryptedVaultPayload(rawText: string): boolean {
   try {
     const parsed = JSON.parse(rawText) as Partial<EncryptedVaultEnvelope>;
-    return parsed?.format === 'cookira-vault' && parsed?.version === 1;
+    return (
+      parsed?.format === 'cookira-vault' &&
+      (parsed?.version === 1 || parsed?.version === 2)
+    );
   } catch {
     return false;
   }
@@ -92,14 +103,19 @@ async function encryptVaultPayload(
   const key = await deriveAesGcmKey(passphrase, salt, DEFAULT_PBKDF2_ITERATIONS, 'encrypt');
   const plaintext = new TextEncoder().encode(JSON.stringify(payload));
   const cipherBuffer = await globalThis.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    {
+      name: 'AES-GCM',
+      iv,
+      additionalData: buildVaultAad(vaultKind, domainLabel),
+    },
     key,
     plaintext,
   );
 
   const envelope: EncryptedVaultEnvelope = {
     format: 'cookira-vault',
-    version: 1,
+    version: 2,
+    exportedBy: 'cookira-v2',
     vaultKind,
     kdf: 'PBKDF2-SHA256',
     iterations: DEFAULT_PBKDF2_ITERATIONS,
@@ -125,7 +141,7 @@ async function decryptVaultPayload<T>(
   const envelope = JSON.parse(rawJson) as Partial<EncryptedVaultEnvelope>;
   if (
     envelope.format !== 'cookira-vault' ||
-    envelope.version !== 1 ||
+    (envelope.version !== 1 && envelope.version !== 2) ||
     !envelope.saltB64 ||
     !envelope.ivB64 ||
     !envelope.ciphertextB64 ||
@@ -141,8 +157,17 @@ async function decryptVaultPayload<T>(
   const key = await deriveAesGcmKey(passphrase, salt, envelope.iterations, 'decrypt');
 
   try {
+    const decryptParams: AesGcmParams =
+      envelope.version === 2
+        ? {
+            name: 'AES-GCM',
+            iv,
+            additionalData: buildVaultAad(envelope.vaultKind ?? 'cookies', envelope.domain ?? ''),
+          }
+        : { name: 'AES-GCM', iv };
+
     const plainBuffer = await globalThis.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      decryptParams,
       key,
       ciphertext,
     );
