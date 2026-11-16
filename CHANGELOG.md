@@ -2,6 +2,16 @@
 
 All notable changes to **Cookira — Browser Cookie Manager** will be documented in this file.
 
+## [2.0.0] - 2026-11-16
+
+### BREAKING CHANGES
+- **Encrypted Vault v2 Format (`version: 2` + AES-GCM AAD)**: Vault exports now bind `vaultKind` and `domain` using AES-GCM `additionalData` (`cookira-vault:v2:<kind>:<domain>`) and set `"exportedBy": "cookira-v2"`. Files exported from `v2.0.0` are incompatible with `v1.x` decoders (tampering with metadata or downgrading `version` is rejected cryptographically). Legacy `v1` vaults still decrypt cleanly in `v2.0.0`.
+- **Settings Schema v2 (`schemaVersion: 2`)**: Added `schemaVersion: 2` and `preferredStoreFilter` persistence plus `exportSettingsJson` envelope `version: 2`, with automatic lossless migration from `v1` local storage and `v1` settings backups. See [Migration Guide](docs/MIGRATION_v1_to_v2.md).
+
+### Added
+- **Multi-Store & Container Badges**: Resolved human-readable store labels (`Default`, `Incognito / Private`, and Firefox `contextualIdentities` container names when available) in the store selector and `Advanced` mode cookie cards.
+- **v2 Migration Guide**: Added [docs/MIGRATION_v1_to_v2.md](docs/MIGRATION_v1_to_v2.md) with upgrade steps and compatibility details.
+
 ## [1.2.0] - 2026-11-15
 
 ### Added

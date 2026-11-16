@@ -13,13 +13,16 @@ Local-first, zero-telemetry **Dual-Target (Chromium MV3 & Firefox WebExtension)*
   - **Smart Value Inspector (Read-Only)**: Automatically decodes JWT headers/claims, JSON, URL-encoded strings, and Base64 UTF-8 values without mutating raw cookie payloads.
   - **Domain Health Bar**: Real-time cookie header byte-size monitor with warning thresholds near the 8 KB `HTTP 431` boundary.
 - **Multi-Format Export & Smart Import**:
-  - Export to **Standard JSON**, **Playwright / NRTX Runner JSON** (`.cookies.json`), **Netscape `.txt`** (`#HttpOnly_` aware), **HTTP `Cookie:` Header**, **cURL Command** (`.sh`), **Python `requests` Dict** (`.py`), or **AES-256-GCM Encrypted Vault** (`.cookira.enc.json`, PBKDF2 SHA-256 `600,000` iterations).
+  - Export to **Standard JSON**, **Playwright / NRTX Runner JSON** (`.cookies.json`), **Netscape `.txt`** (`#HttpOnly_` aware), **HTTP `Cookie:` Header**, **cURL Command** (`.sh`), **Python `requests` Dict** (`.py`), or **AES-256-GCM Encrypted Vault v2** (`.cookira.enc.json`, PBKDF2 SHA-256 `600,000` iterations + AAD metadata authentication; backward-compatible read for v1 vaults).
   - Import via paste, drag & drop, or file upload with auto-format detection, **Pre-Import Diff** (`New`, `Overwrite`, `Invalid`), and **Merge** vs **Replace Scope** (backed by automatic rollback snapshot).
-- **Session Profiles, Privacy & Live Telemetry**:
-  - **1-Click Account Profile Switcher**: Save domain cookie snapshots and switch accounts instantly with Undo protection.
+- **Session Profiles, Multi-Store Containers & Live Telemetry**:
+  - **1-Click Account Profile Switcher & Vault**: Save domain cookie snapshots, switch accounts with Undo protection, or back up profiles into encrypted `.cookira-profiles.enc.json` vaults.
+  - **Multi-Store & Container Badges**: Filter and identify cookies across Default, Incognito/Private, and Firefox Container stores with persistent `preferredStoreFilter`.
   - **Domain Lock**: Lock critical domains against accidental edits or deletions.
   - **Live Cookie Watcher**: Real-time `cookies.onChanged` event log persisted via `storage.session`, with mutation `cause` filter (`explicit`, `overwrite`, `expired`, `evicted`) and metadata-only Audit JSON export (omitting raw cookie secrets).
   - **Auto-Clean Whitelist**: Disabled by default, supports glob `*` wildcards (e.g., `*.tracker.example`), includes Dry-Run Preview, and never touches locked or whitelisted domains.
+
+> Upgrading from `v1.x`? Read the [v1.x to v2.0.0 Migration Guide](docs/MIGRATION_v1_to_v2.md).
 - **Automatic Theme Sync**: Defaults to `System (Auto)` following the browser/OS Dark or Light color scheme in real time, with manual `Dark Neon` and `Light Ink` overrides in Settings (`Alt+S`).
 
 ## Quick Start (Windows / macOS / Linux)
